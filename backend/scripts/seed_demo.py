@@ -20,6 +20,8 @@ def seed():
                 sample=db.scalar(select(Sample).where(Sample.code==code))
                 db.add(Transfer(code=req,sample_id=sample.id,destination=['理化检测室','金属分析室','复核室'][i],quantity=[30,20,15][i],note='09:15 交接班复核'))
         db.commit()
+        from src.services.shifts import ensure_shift
+        ensure_shift(db)
         counts={cls.__tablename__:db.scalar(select(func.count()).select_from(cls)) for cls in (User,Sample,Transfer,Trial)}
         print(counts)
 if __name__=='__main__': seed()

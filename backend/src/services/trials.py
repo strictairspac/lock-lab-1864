@@ -3,7 +3,7 @@ from sqlalchemy import select
 from redis import Redis
 from fastapi import HTTPException
 from src.config.settings import REDIS_URL
-from src.models.entities import Trial,Transfer,Sample,TrialBalance
+from src.models.entities import Trial,Transfer,Sample,TrialBalance,Receipt
 from src.utils.serialization import record
 from .common import save
 from src.constants.enums import RUN_STATES
@@ -12,7 +12,10 @@ def listing(db): return [record(x) for x in db.scalars(select(Trial).order_by(Tr
 def detail(db,ident):
     obj=db.get(Trial,ident)
     if not obj: raise HTTPException(404,'演练不存在')
-    return record(obj)
+    data=record(obj)
+    receipt=db.scalar(select(Receipt).where(Receipt.trial_id==ident,Receipt.actor=='A'))
+    data['receipt']={'room':receipt.room,'quantity':receipt.quantity,'shift_id':receipt.shift_id} if receipt else None
+    return data
 def create(db,data,user):
     transfer=db.get(Transfer,data.transfer_id)
     if not transfer: raise HTTPException(404,'流转申请不存在')

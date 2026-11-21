@@ -1,5 +1,7 @@
 -- Schema is applied idempotently by SQLAlchemy metadata at startup.
 -- See src/models/entities.py for authoritative tables, constraints and relationships.
--- Critical locking query (worker only):
+-- Critical locking queries (worker + shift ledger):
 -- SELECT remaining FROM trial_balances WHERE trial_id = :id FOR UPDATE;
 -- SET LOCAL lock_timeout = '250ms';
+-- SELECT current_shift_id FROM shift_state WHERE id = 1 FOR UPDATE;   -- 回执归属 / 签字换班 / 入账共用
+-- INSERT INTO ledger_entries(...) ON CONFLICT (trial_id) DO NOTHING RETURNING id;  -- 一笔只入一次
